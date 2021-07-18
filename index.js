@@ -8,7 +8,16 @@ let searchInput = document.getElementById("searchInput")
 
 let foods = [];
 
-window.onload = async () => {
+const initApp = async () => {
+       
+    // Promise-Then User
+    fetch("https://jsonplaceholder.typicode.com/users/1")
+    .then((response) => response.json())
+    .then(json => name.innerText = `Merhaba, ${json.name}`)
+    .catch(() => {
+        console.log("Error Occured!")
+    })
+
     // Async Await Todos
     try{
         // Loading Display
@@ -33,10 +42,29 @@ window.onload = async () => {
         console.log(error)
     }
 
+    // Fuse js Search
+    const options = {
+        includeScore: true,
+    // Search in `title` array
+        keys: ['title']
+    }
+    
+    searchInput.addEventListener("input", debounce((event) => {
+        searchInput.value = event.target.value
+
+        const fuse = new Fuse(foods, options)
+        let search = fuse.search(searchInput.value)
+        let searchArray = search.map(search => search.item )
+
+        card.innerHTML = ""
+        !searchInput.value || !searchInput.value.trim() ? foodCards(foods) : foodCards(searchArray) // !searchInput.value.replace(/\s/g, '').length
+        console.log("Result -> ",searchArray)
+    },1000))
+
+    foodCards(foods)
+}
     // Create Cards
     function foodCards(food){
-        // For Loading Display
-        setTimeout(() => {
             // Create Element ( Food Cards )
             food.map( ({title, id}) => {
                 // Create {div, p}
@@ -111,12 +139,9 @@ window.onload = async () => {
                 cardDiv.appendChild(favButton)    
             })
             // Remove Loader
-            loader.classList.remove("display");
-        },400)
+            loader.classList.remove("display");       
     }
-
-    foodCards(foods)
-        
+       
     // For Better Search Performance
     const debounce = (func, delay) => {
         let debounceTimer
@@ -130,33 +155,4 @@ window.onload = async () => {
         }
     }
 
-    // Fuse js Search
-    const options = {
-        includeScore: true,
-        // Search in `title` array
-        keys: ['title']
-    }
-    
-    searchInput.addEventListener("input", debounce((event) => {
-        searchInput.value = event.target.value
-        loader.classList.add("display");
-
-        const fuse = new Fuse(foods, options)
-        let search = fuse.search(searchInput.value)
-        let searchArray = search.map(search => search.item )
-
-        card.innerHTML = ""
-        !searchInput.value || !searchInput.value.trim() ? foodCards(foods) : foodCards(searchArray) // !searchInput.value.replace(/\s/g, '').length
-        console.log("Result -> ",searchArray)
-    },1000))
-
-
-    // Promise-Then User
-    fetch("https://jsonplaceholder.typicode.com/users/1")
-    .then((response) => response.json())
-    .then(json => name.innerText = `Merhaba, ${json.name}`)
-    .catch(() => {
-        console.log("Error Occured!")
-    })
-}
-
+    initApp();
